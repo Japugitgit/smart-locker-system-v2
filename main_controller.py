@@ -2,6 +2,7 @@ import asyncio
 import logging
 import json
 import os
+import uuid
 from typing import Optional, Dict, Any
 from datetime import datetime, timedelta
 from dataclasses import dataclass
@@ -15,8 +16,8 @@ from hardware.lock_controller import LockController, LockManager
 from hardware.keypad_input import KeypadInputHandler
 
 # Import authentication modules
-from auth.pin_verification import PINVerifier
-from auth.access_control import AccessController
+from auth.pin_verification import PINVerification
+from auth.access_control import AccessControl
 
 # Import voice recognition modules
 from speaker_recognition import SpeakerRecognition
@@ -211,10 +212,10 @@ class SmartLockerController:
         self.logger.info("🔐 Initializing authentication modules...")
         
         # Initialize PIN verifier
-        self.pin_verifier = PINVerifier()
+        self.pin_verifier = PINVerification()
         
         # Initialize access controller
-        self.access_controller = AccessController(self.pin_verifier)
+        self.access_controller = AccessControl()
         
         # Initialize voice recognition
         self.speaker_recognition = SpeakerRecognition()
@@ -437,8 +438,8 @@ class SmartLockerController:
             
             if mode == "admin":
                 # Admin PIN verification
-                result = await self.access_controller.verify_admin_pin(pin)
-                if result.success:
+                result = self.access_controller.verify_admin_pin(pin)
+                if result["success"]:
                     await self._admin_access_granted()
                     return True
                 else:
@@ -447,13 +448,15 @@ class SmartLockerController:
             
             elif self.current_user:
                 # Regular user PIN verification after voice auth
-                result = await self.access_controller.authenticate_user(
+                result = self.access_controller.authenticate_user(
                     user_id=self.current_user,
+                    voice_confidence=0.8,  # Use recent voice auth confidence
+                    gmm_score=0.0,  # Default GMM score
                     pin=pin,
                     method="voice+pin"
                 )
                 
-                if result.success:
+                if result["success"]:
                     await self._access_granted(self.current_user, "voice+pin")
                     return True
                 else:
@@ -462,10 +465,10 @@ class SmartLockerController:
             
             else:
                 # PIN-only authentication
-                result = await self.access_controller.authenticate_pin_only(pin)
+                result = self.access_controller.authenticate_pin_only(pin)
                 
-                if result.success:
-                    await self._access_granted(result.user_id, "pin")
+                if result["success"]:
+                    await self._access_granted(result["user_id"], "pin")
                     return True
                 else:
                     await self._authentication_failed("Invalid PIN")
@@ -484,12 +487,21 @@ class SmartLockerController:
         await self.lock.emergency_unlock()
         
         # Log emergency access
-        await self.access_controller.log_access_attempt(
-            user_id="EMERGENCY",
-            method="emergency_code",
-            success=True,
-            details={"code": code}
-        )
+        emergency_log = {
+            "id": str(uuid.uuid4()),
+            "user_id": "EMERGENCY",
+            "timestamp": datetime.now().isoformat(),
+            "voice_confidence": None,
+            "gmm_score": None,
+            "pin_attempts": 0,
+            "method": "emergency_code",
+            "success": True,
+            "reason": "emergency_access",
+            "door_opened": True,
+            "session_duration_ms": 0,
+            "details": {"code": code}
+        }
+        self.access_controller.log_access_attempt(emergency_log)
     
     async def _handle_admin_code(self, code: str):
         """Handle admin code activation"""

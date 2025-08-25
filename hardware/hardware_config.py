@@ -28,6 +28,8 @@ SOLENOID_LOCK_PIN = 23              # Relay control for solenoid lock
 DOOR_SENSOR_PIN = 27                # Magnetic sensor for door state
 LOCK_ENGAGEMENT_TIME = 2.0          # Seconds to keep lock open
 DOOR_TIMEOUT = 10.0                 # Max seconds door can stay open
+DOOR_OPEN_TIMEOUT = 30.0            # Max seconds door can stay open before auto-lock
+SOLENOID_ACTIVE_LOW = True          # Solenoid relay is active low
 
 # === STATUS INDICATORS ===
 STATUS_LEDS = {

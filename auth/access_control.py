@@ -311,6 +311,53 @@ class AccessControl:
         
         return alerts
     
+    def verify_admin_pin(self, pin: str) -> Dict:
+        """
+        Verify admin PIN - wrapper around admin_authentication for compatibility
+        
+        Args:
+            pin: Admin PIN to verify
+            
+        Returns:
+            Authentication result dictionary with success field
+        """
+        return self.admin_authentication(pin)
+    
+    def authenticate_pin_only(self, pin: str) -> Dict:
+        """
+        PIN-only authentication - find user by PIN and authenticate
+        
+        Args:
+            pin: 4-digit PIN to authenticate
+            
+        Returns:
+            Authentication result dictionary
+        """
+        # Find user by PIN
+        for user_id in self.pin_verifier.users.keys():
+            pin_valid, _ = self.pin_verifier.verify_pin(user_id, pin)
+            if pin_valid:
+                # Found matching user, authenticate with PIN only
+                return self.pin_only_authentication(user_id, pin)
+        
+        # No user found with this PIN
+        auth_result = {
+            "id": str(uuid.uuid4()),
+            "user_id": "unknown",
+            "timestamp": datetime.now().isoformat(),
+            "voice_confidence": 0.0,
+            "gmm_score": 0.0,
+            "pin_attempts": 1,
+            "method": "pin_only",
+            "success": False,
+            "reason": "pin_not_found",
+            "door_opened": False,
+            "session_duration_ms": 0
+        }
+        
+        self.log_access_attempt(auth_result)
+        return auth_result
+
     def _get_duration_ms(self, start_time: datetime) -> int:
         """Calculate duration in milliseconds from start time"""
         return int((datetime.now() - start_time).total_seconds() * 1000)
