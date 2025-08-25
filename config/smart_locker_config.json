@@ -1,0 +1,56 @@
+{
+  "voice_timeout": 10.0,
+  "pin_timeout": 30.0,
+  "access_duration": 30.0,
+  "max_auth_attempts": 3,
+  "voice_threshold": 0.75,
+  "gmm_enabled": true,
+  "auto_lock_delay": 10.0,
+  "emergency_codes": ["*911*", "#999#"],
+  "admin_codes": ["*123*", "#456#"],
+  "voice_trigger_codes": ["*V*", "#V#"],
+  "hardware_simulation": null,
+  "debug_mode": false,
+  "system_name": "Smart Locker v2.0",
+  "organization": "TA Voice Recognition System",
+  "hardware_config": {
+    "keypad_debounce_time": 200,
+    "led_brightness": 0.8,
+    "buzzer_volume": 0.7,
+    "door_timeout": 300,
+    "solenoid_active_low": true
+  },
+  "security_config": {
+    "pin_lockout_duration": 600,
+    "max_failed_attempts": 5,
+    "session_timeout": 1800,
+    "require_voice_and_pin": true,
+    "emergency_override": true
+  },
+  "audio_config": {
+    "sample_rate": 16000,
+    "channels": 1,
+    "chunk_size": 1024,
+    "recording_duration": 3.0,
+    "voice_activity_threshold": 0.01
+  },
+  "logging_config": {
+    "log_level": "INFO",
+    "max_log_size_mb": 10,
+    "max_log_files": 5,
+    "log_access_attempts": true,
+    "log_hardware_events": true
+  },
+  "network_config": {
+    "admin_interface_port": 8501,
+    "api_port": 8502,
+    "enable_remote_monitoring": false,
+    "ssl_enabled": false
+  },
+  "backup_config": {
+    "auto_backup": true,
+    "backup_interval_hours": 24,
+    "max_backups": 7,
+    "backup_location": "backups/"
+  }
+}
